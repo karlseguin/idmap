@@ -1,35 +1,37 @@
 package idmap
 
 import (
-	"github.com/karlseguin/gspec"
+	. "github.com/karlseguin/expect"
 	"testing"
 )
 
-func TestIdMapReturnsANewId(t *testing.T) {
-	spec := gspec.New(t)
-	m := New(2)
-	spec.Expect(m.Get("over", true)).ToEqual(uint64(1))
-	spec.Expect(m.Get("9000", true)).ToEqual(uint64(2))
+type MapTests struct {}
+
+func Test_Map(t *testing.T) {
+	Expectify(new(MapTests), t)
 }
 
-func TestIdMapReturnsAnExistingId(t *testing.T) {
-	spec := gspec.New(t)
+func (_ *MapTests) TestIdMapReturnsANewId() {
+	m := New(2)
+	Expect(m.Get("over", true)).To.Equal(uint64(1))
+	Expect(m.Get("9000", true)).To.Equal(uint64(2))
+}
+
+func (_ *MapTests) TestIdMapReturnsAnExistingId() {
 	m := New(2)
 	m.Get("over", true)
 	m.Get("9000", true)
-	spec.Expect(m.Get("over", false)).ToEqual(uint64(1))
+	Expect(m.Get("over", false)).To.Equal(uint64(1))
 }
 
-func TestIdMapDoesNotCreateANewId(t *testing.T) {
-	spec := gspec.New(t)
+func (_ *MapTests) TestIdMapDoesNotCreateANewId() {
 	m := New(2)
-	spec.Expect(m.Get("over", false)).ToEqual(uint64(0))
+	Expect(m.Get("over", false)).To.Equal(uint64(0))
 }
 
-func TestIdMapRemovesAnId(t *testing.T) {
-	spec := gspec.New(t)
+func (_ *MapTests) TestIdMapRemovesAnId() {
 	m := New(2)
 	m.Get("over", true)
 	m.Remove("over")
-	spec.Expect(m.Get("over", false)).ToEqual(uint64(0))
+	Expect(m.Get("over", false)).To.Equal(uint64(0))
 }
