@@ -7,9 +7,9 @@ import (
 )
 
 type Map struct {
-	buckets uint32
-	counter uint64
-	lookup  map[uint32]*Bucket
+	bucketMask uint32
+	counter    uint64
+	lookup     map[uint32]*Bucket
 }
 
 type Bucket struct {
@@ -17,11 +17,17 @@ type Bucket struct {
 	lookup map[string]uint64
 }
 
+// Create a new id mapper. For greater throughput, values are internally
+// sharded into X buckets, where buckets must be a power of 2
 func New(buckets int) *Map {
+	if buckets == 0 || ((buckets&(^buckets+1)) == buckets) == false {
+		buckets = 16
+	}
+
 	b := uint32(buckets)
 	m := &Map{
-		buckets: b,
-		lookup:  make(map[uint32]*Bucket, buckets),
+		bucketMask: b - 1,
+		lookup:     make(map[uint32]*Bucket, buckets),
 	}
 	for i := uint32(0); i < b; i++ {
 		m.lookup[i] = &Bucket{
@@ -31,6 +37,8 @@ func New(buckets int) *Map {
 	return m
 }
 
+// Get the id for the given string,
+// optionally creating one if it doesn't exist
 func (m *Map) Get(s string, create bool) uint64 {
 	bucket := m.getBucket(s)
 	bucket.RLock()
@@ -56,6 +64,7 @@ func (m *Map) Get(s string, create bool) uint64 {
 	return id
 }
 
+// Remove the value from the map
 func (m *Map) Remove(s string) {
 	bucket := m.getBucket(s)
 	bucket.Lock()
@@ -66,6 +75,5 @@ func (m *Map) Remove(s string) {
 func (m *Map) getBucket(s string) *Bucket {
 	h := fnv.New32a()
 	h.Write([]byte(s))
-	index := h.Sum32() % m.buckets
-	return m.lookup[index]
+	return m.lookup[h.Sum32()&m.bucketMask]
 }

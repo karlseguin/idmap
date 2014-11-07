@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-type MapTests struct {}
+type MapTests struct{}
 
 func Test_Map(t *testing.T) {
 	Expectify(new(MapTests), t)
