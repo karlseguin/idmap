@@ -3,18 +3,18 @@ package idmap
 import (
 	"hash/fnv"
 	"sync"
-	"sync/atomic"
 )
 
 type Map struct {
 	bucketMask uint32
-	counter    uint64
+	jump       uint64
 	lookup     map[uint32]*Bucket
 }
 
 type Bucket struct {
 	sync.RWMutex
-	lookup map[string]uint64
+	counter uint64
+	lookup  map[string]uint64
 }
 
 // Create a new id mapper. For greater throughput, values are internally
@@ -27,11 +27,13 @@ func New(buckets int) *Map {
 	b := uint32(buckets)
 	m := &Map{
 		bucketMask: b - 1,
+		jump:       uint64(buckets),
 		lookup:     make(map[uint32]*Bucket, buckets),
 	}
 	for i := uint32(0); i < b; i++ {
 		m.lookup[i] = &Bucket{
-			lookup: make(map[string]uint64),
+			counter: uint64(i + 1),
+			lookup:  make(map[string]uint64),
 		}
 	}
 	return m
@@ -59,8 +61,9 @@ func (m *Map) Get(s string, create bool) uint64 {
 		return id
 	}
 
-	id = atomic.AddUint64(&m.counter, 1)
+	id = bucket.counter
 	bucket.lookup[s] = id
+	bucket.counter += m.jump
 	return id
 }
 
