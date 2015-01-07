@@ -2,7 +2,7 @@ Concurrent-safe string to id mapping. There's no internal state / consistency. I
 
 What's the point? The point is to be able to expose string ids ("leto" or guids) but interally use more efficient integers. If the internal integer changes, that's fine because it has no meaning on its own
 
-````go
+```go
 // The parameter is the # of buckets to use. Buckets help shard write-locks.
 // Write-locks are short-lived, so there should be no reason for this to be
 // very large.

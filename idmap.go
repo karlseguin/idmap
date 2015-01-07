@@ -46,13 +46,9 @@ func (m *Map) Get(s string, create bool) uint64 {
 	bucket.RLock()
 	id, exists := bucket.lookup[s]
 	bucket.RUnlock()
-	if exists {
+	if exists || create == false {
 		return id
 	}
-	if create == false {
-		return 0
-	}
-
 	bucket.Lock()
 	defer bucket.Unlock()
 
