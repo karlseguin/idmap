@@ -23,4 +23,7 @@ id3 := map.Get("paul", true)
 
 // id4 will be equal to 0 (create is false)
 id4 := map.Get("jessica", false)
-````
+```
+
+## uint32
+The above map deals with `uint64`. `idmap.New32` can be used when dealing with `uint32`. The API is the same.
